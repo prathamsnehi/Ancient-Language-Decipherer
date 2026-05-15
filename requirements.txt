@@ -5,3 +5,6 @@ opencv-python
 opencv-contrib-python
 matplotlib
 tensorflow
+google-generativeai
+python-dotenv
+pillow

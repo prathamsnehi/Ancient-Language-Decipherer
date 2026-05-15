@@ -1,120 +1,75 @@
-from os.path import isdir, join, exists, dirname
-from urllib.request import urlopen
-from zipfile import ZipFile
-from io import BytesIO
-import joblib
+import argparse
+import sys
 import os
-from os import listdir
-from os.path import isfile, join
-import shutil
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn import linear_model
-import numpy as np
 
-from featureExtractor import FeatureExtractor
-from imageLoader import batchGenerator
+from image_processing import segment_image
+from inference_model import predict_image
+from translator_api import translate_gardiner_codes, detect_reading_direction
 
+def main():
+    parser = argparse.ArgumentParser(description="Hybrid Translation Pipeline for Ancient Hieroglyphs")
+    parser.add_argument("--image", type=str, help="Path to the pre-cropped hieroglyph image.", required=True)
+    args = parser.parse_args()
 
-class StartApplication:
+    image_path = args.image
+    if not os.path.exists(image_path):
+        print(f"Error: Image not found at {image_path}")
+        sys.exit(1)
 
-    def __init__(self):
-        file_dir = dirname(__file__)
-        self.dataPath = join(file_dir, "../data/glyphdataset/Dataset")
-        self.stelePath = join(self.dataPath, "Manual/Preprocessed")
-        self.intermediatePath = join(file_dir, "../intermediates")
-        self.featurePath = join(self.intermediatePath, "features.npy")
-        self.labelsPath = join(self.intermediatePath, "labels.npy")
-        self.svmPath = join(self.intermediatePath, "svm.pkl")
-        self.image_paths = []
-        self.labels = []
-        self.batch_size = 200
-        self.download_dataset()
-        self.model_training()
+    print(f"--- Stage 1: Vision (Processing {image_path}) ---")
+    
+    print("Determining reading direction using Gemini Vision...")
+    face_direction = detect_reading_direction(image_path)
+    print(f"Detected figure orientation: {face_direction}")
+    
+    if face_direction == "left":
+        reading_direction = "ltr"
+    else:
+        # If right or unknown, default to rtl
+        reading_direction = "rtl"
+        
+    print(f"Setting segmentation reading direction to: {reading_direction.upper()}")
+    
+    try:
+        segments = segment_image(image_path, direction=reading_direction)
+        print(f"Found {len(segments)} distinct glyph segments.")
+    except Exception as e:
+        print(f"Image processing failed: {e}")
+        sys.exit(1)
 
+    predicted_ids = []
+    for i, segment in enumerate(segments):
+        try:
+            g_id = predict_image(segment)
+            predicted_ids.append(g_id)
+            print(f"  Segment {i+1}: Predicted {g_id}")
+        except Exception as e:
+            print(f"  Segment {i+1}: Prediction failed ({e})")
+            predicted_ids.append("UNKNOWN")
 
+    print("\n--- Stage 2: Correction ---")
+    predicted_seq = " ".join(predicted_ids)
+    print(f"Extracted Sequence: {predicted_seq}")
+    override = input("Press Enter to accept this sequence, or type a space-separated sequence of Gardiner IDs to override: ").strip()
+    
+    if override:
+        final_ids = override.split()
+        print(f"Using Manual Override: {' '.join(final_ids)}")
+    else:
+        final_ids = predicted_ids
+        print("Using Extracted Sequence.")
 
-    # def convert_dataset(self):
-    #     mypath = "test_data/"
-    #
-    #     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-    #
-    #     print(onlyfiles)
-    #
-    #     for png in onlyfiles:
-    #
-    #         print(png)
-    #
-    #         folder_name = png[7:-4]
-    #
-    #         # check if folder name exists
-    #
-    #         if os.path.isdir('clean_data/' + folder_name) == False:
-    #             os.makedirs('clean_data/' + folder_name)
-    #
-    #         # copy image to suitable folder and rename
-    #         shutil.move(mypath + "/" + png, 'clean_data/' + folder_name + "/")
+    print("\n--- Stage 3: LLM Translation ---")
+    print("Consulting Gemini Expert...")
+    result = translate_gardiner_codes(final_ids)
 
-    def model_training(self):
-
-        # check if the feature file is present, if so; there is no need to recompute the features
-        # The pre-computed features can also be downloaded from http://iamai.nl/downloads/features.npy
-        if not isfile(self.featurePath):
-            print("indexing images...")
-            Steles = [join(self.stelePath, f) for f in listdir(self.stelePath) if isdir(join(self.stelePath, f))]
-            for stele in Steles:
-                imagePaths = [join(stele, f) for f in listdir(stele) if isfile(join(stele, f))]
-                for path in imagePaths:
-                    self.image_paths.append(path)
-                    self.labels.append(path[(path.rfind("_") + 1): path.rfind(".")])
-
-            featureExtractor = FeatureExtractor()
-            features = []
-            print("computing features...")
-            for idx, (batch_images, _) in enumerate(batchGenerator(self.image_paths, self.labels, self.batch_size)):
-                print("{}/{}".format((idx + 1) * self.batch_size, len(self.labels)))
-                features_ = featureExtractor.get_features(batch_images)
-                features.append(features_)
-            features = np.vstack(features)
-
-            labels = np.asarray(self.labels)
-            print("saving features...")
-            np.save(self.featurePath, features)
-            np.save(self.labelsPath, labels)
-        else:
-            print("loading precomputed features and labels from {} and {}".format(self.featurePath, self.labelsPath))
-            features = np.load(self.featurePath)
-            labels = np.load(self.labelsPath)
-
-        # on to the SVM trainign phase
-        tobeDeleted = np.nonzero(labels == "UNKNOWN")  # Remove the Unknown class from the database
-        features = np.delete(features, tobeDeleted, 0)
-        labels = np.delete(labels, tobeDeleted, 0)
-        numImages = len(labels)
-        trainSet, testSet, trainLabels, testLabels = train_test_split(features, labels, test_size=0.20, random_state=42)
-
-        # Training SVM, feel free to use linear SVM (or another classifier for that matter) for faster training, however that will not give the confidence scores that can be used to rank hieroglyphs
-        print("training SVM...")
-        if 0:  # optinal; either train 1 classifier fast, or search trough the parameter space by training multiple classifiers to sqeeze out that extra 2%
-            clf = linear_model.LogisticRegression(C=10000)
-        else:
-            svr = linear_model.LogisticRegression()
-            parameters = {'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]}
-            clf = GridSearchCV(svr, parameters, n_jobs=8)
-        clf.fit(trainSet, trainLabels)
-
-        print(clf)
-        print("finished training! saving...")
-        joblib.dump(clf, self.svmPath, compress=1)
-
-        prediction = clf.predict(testSet)
-        accuracy = np.sum(testLabels == prediction) / float(len(prediction))
-
-        # for idx, pred in enumerate(prediction):
-        #     print("%-5s --> %s" % (testLabels[idx], pred))
-        print("accuracy = {}%".format(accuracy * 100))
+    print("\n================ FINAL TRANSLATION ================")
+    print(f"Codes: {' '.join(final_ids)}\n")
+    print(f"Literal Translation:\n{result.get('literal_translation', 'N/A')}\n")
+    print(f"Smoothed English:\n{result.get('smoothed_translation', 'N/A')}\n")
+    print(f"Summary (The Gist):\n{result.get('summary', 'N/A')}\n")
+    print(f"Historical Insight (Everyday Life):\n{result.get('historical_insight', 'N/A')}")
+    print("===================================================\n")
 
 if __name__ == "__main__":
-    """
-    Start the application
-    """
-    app = StartApplication();
+    main()

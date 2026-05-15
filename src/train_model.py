@@ -38,7 +38,6 @@ class TrainModel:
         #self.convert_dataset()
         self.load_dataset()
         self.normalize_images()
-        self.normalize_images()
         self.set_prefetching()
         self.define_model()
         self.compile_model()
@@ -110,7 +109,7 @@ class TrainModel:
           batch_size=self.batch_size)
 
     def normalize_images(self):
-        normalization_layer = tf.keras.layers.experimental.preprocessing.Rescaling(1./255)
+        normalization_layer = tf.keras.layers.Rescaling(1./255)
         normalized_ds = self.train_ds.map(lambda x, y: (normalization_layer(x), y))
         self.image_batch, self.labels_batch = next(iter(normalized_ds))
         first_image = self.image_batch[0]
@@ -130,7 +129,7 @@ class TrainModel:
         Define the model to be trained
         """
         self.model = tf.keras.Sequential([
-          layers.experimental.preprocessing.Rescaling(1./255),
+          layers.Rescaling(1./255),
           layers.Conv2D(32, 3, activation='relu'),
           layers.MaxPooling2D(),
           layers.Conv2D(32, 3, activation='relu'),
@@ -187,7 +186,7 @@ class TrainModel:
         Save the Keras model in SavedModel format
         """
 
-        self.model.save("hieroglyph_model")
+        self.model.save("hieroglyph_model.keras")
         img = self.image_batch[0]
 
         # print(img)

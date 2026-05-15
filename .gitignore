@@ -2,3 +2,5 @@
 *.pyc
 /src/input/
 /examples/svg_hieroglyphs/*
+.venv/
+.env
