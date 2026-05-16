@@ -5,7 +5,7 @@ opencv-python-headless
 opencv-contrib-python-headless
 matplotlib
 tensorflow
-google-generativeai
+google-genai
 python-dotenv
 pillow
 fastapi

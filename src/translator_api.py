@@ -1,6 +1,7 @@
 import os
 import json
-import google.generativeai as genai
+# pyrefly: ignore [missing-import]
+from google import genai
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -11,10 +12,8 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     raise ValueError("GEMINI_API_KEY not found in environment variables. Please check your .env file.")
 
-genai.configure(api_key=API_KEY)
+client = genai.Client(api_key=API_KEY)
 
-# Use Gemini 3 Flash Preview as the default model
-_model = genai.GenerativeModel('gemini-3-flash-preview')
 
 def detect_reading_direction(image_path: str) -> str:
     """
@@ -23,16 +22,19 @@ def detect_reading_direction(image_path: str) -> str:
     Returns 'left', 'right', or 'unknown'.
     """
     try:
-        sample_file = genai.upload_file(path=image_path)
+        sample_file = client.files.upload(file=image_path)
         prompt = (
             "Look at the figures (e.g., people, animals, birds) in this ancient Egyptian hieroglyph image. "
             "Which direction are the living figures facing? "
             "Reply with exactly one word: 'left', 'right', or 'unknown'."
         )
-        response = _model.generate_content([prompt, sample_file])
+        response = client.models.generate_content(
+            model='gemini-3-flash-preview',
+            contents=[prompt, sample_file]
+        )
         
         # Clean up the file from the API storage
-        genai.delete_file(sample_file.name)
+        client.files.delete(name=sample_file.name)
         
         answer = response.text.strip().lower()
         if "left" in answer:
@@ -83,7 +85,10 @@ def translate_gardiner_codes(gardiner_ids: list[str]) -> dict:
     """
     
     try:
-        response = _model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-3-flash-preview',
+            contents=prompt
+        )
         response_text = response.text.strip()
         
         # Clean up in case the LLM returned markdown blocks anyway

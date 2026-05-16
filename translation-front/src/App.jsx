@@ -190,26 +190,11 @@ export default function App() {
               </div>
 
               <div className="grid gap-6">
-                {/* Literal Translation */}
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-surface p-6 rounded-3xl shadow-soft border border-primary/10 relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4"></div>
-                  <div className="flex items-center gap-3 mb-3 text-primary">
-                    <BookOpen className="w-5 h-5" />
-                    <h3 className="font-rounded font-semibold text-lg">Literal Translation</h3>
-                  </div>
-                  <p className="text-foreground text-lg leading-relaxed">{result.literal_translation}</p>
-                </motion.div>
-
                 {/* Summary */}
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: 0.3 }}
                   className="bg-surface p-6 rounded-3xl shadow-soft border border-primary/10 relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4"></div>
@@ -224,7 +209,7 @@ export default function App() {
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.7 }}
+                  transition={{ delay: 0.5 }}
                   className="bg-surface p-6 rounded-3xl shadow-soft border border-primary/10 relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4"></div>
@@ -233,6 +218,21 @@ export default function App() {
                     <h3 className="font-rounded font-semibold text-lg">Historical Insight</h3>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">{result.historical_insight}</p>
+                </motion.div>
+
+                {/* Literal Translation */}
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 }}
+                  className="bg-surface p-6 rounded-3xl shadow-soft border border-primary/10 relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4"></div>
+                  <div className="flex items-center gap-3 mb-3 text-primary">
+                    <BookOpen className="w-5 h-5" />
+                    <h3 className="font-rounded font-semibold text-lg">Literal Translation</h3>
+                  </div>
+                  <p className="text-foreground text-lg leading-relaxed">{result.literal_translation}</p>
                 </motion.div>
               </div>
             </motion.div>

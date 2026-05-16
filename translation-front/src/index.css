@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 30% 96%; /* Warm off-white sand */
+    --foreground: 20 10% 15%; /* Dark earthy brown/black */
+    
+    --primary: 35 60% 50%; /* Golden Terracotta / Egyptian Gold */
+    --primary-foreground: 0 0% 100%;
+    
+    --surface: 0 0% 100%; /* Pure white for cards */
+    
+    --muted: 40 20% 90%; /* Light sand for subtle backgrounds */
+    --muted-foreground: 20 10% 40%; /* Muted earthy brown */
+    
+    --shadow-soft: 0 10px 40px -10px hsl(35 60% 50% / 0.15);
+    --shadow-hover: 0 20px 40px -10px hsl(35 60% 50% / 0.25);
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/20;
+    /* Add a subtle sandy noise or gradient background */
+    background-image: radial-gradient(circle at top right, hsl(35 60% 50% / 0.05), transparent 40%),
+                      radial-gradient(circle at bottom left, hsl(35 60% 50% / 0.05), transparent 40%);
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
