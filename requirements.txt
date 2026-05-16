@@ -11,3 +11,4 @@ pillow
 fastapi
 uvicorn
 python-multipart
+gunicorn
