@@ -4,3 +4,4 @@
 /examples/svg_hieroglyphs/*
 .venv/
 .env
+__pycache__/
