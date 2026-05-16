@@ -6,15 +6,14 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # Add the src folder to the Python path so we can import our pipeline modules
-backend_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(backend_dir)
+project_root = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(project_root, "src")
 sys.path.append(src_dir)
 
 # Now we can import the pipeline logic
-from image_processing import segment_image
-from inference_model import predict_image
-from translator_api import translate_gardiner_codes, detect_reading_direction
+from src.image_processing import segment_image
+from src.inference_model import predict_image
+from src.translator_api import translate_gardiner_codes, detect_reading_direction
 
 app = FastAPI(title="Hieroglyph Translation API", description="API for Translating Ancient Egyptian Hieroglyphs")
 
@@ -27,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-TEMP_DIR = os.path.join(backend_dir, "temp_uploads")
+TEMP_DIR = os.path.join(project_root, "temp_uploads")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 @app.post("/api/translate")
