@@ -1,0 +1,13 @@
+pillow
+numpy
+pandas
+opencv-python-headless
+opencv-contrib-python-headless
+matplotlib
+tensorflow
+google-genai
+python-dotenv
+pillow
+fastapi
+uvicorn
+python-multipart

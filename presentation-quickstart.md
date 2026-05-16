@@ -2,7 +2,8 @@ Start local server:
 
 ```bash
 source .venv/bin/activate
-uvicorn app:app --port 8000
+cd translation-back
+uvicorn main_api:app --port 8000
 ```
 
 Tunnel to public internet using ngrok:
