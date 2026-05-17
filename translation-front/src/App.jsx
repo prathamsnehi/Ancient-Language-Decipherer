@@ -79,9 +79,6 @@ export default function App() {
           transition={{ duration: 0.6 }}
           className="text-center space-y-4"
         >
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4 text-primary">
-            <Camera className="w-6 h-6" />
-          </div>
           <h1 className="text-4xl md:text-5xl font-rounded font-bold tracking-tight text-foreground text-balance">
             Voices of the <span className="text-primary">Silent 99%</span>
           </h1>
@@ -245,6 +242,15 @@ export default function App() {
         </AnimatePresence>
 
       </main>
+
+      {/* Footer Attribution */}
+      <footer className="max-w-2xl mx-auto mt-16 text-center px-4">
+        <p className="text-sm text-muted-foreground/80 leading-relaxed text-balance">
+          Application and LLM translation engine was developed by Pratham Snehi.
+          However, most of the credit goes to James Piggot for his foundational computer vision pipeline for hieroglyph detection, 
+          as well as all the researchers whose work made this possible.
+        </p>
+      </footer>
     </div>
   );
 }
