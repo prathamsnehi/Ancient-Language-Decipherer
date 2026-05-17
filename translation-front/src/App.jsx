@@ -2,8 +2,8 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Camera, ArrowRight, RefreshCw, AlertCircle, BookOpen, ScrollText, Landmark } from 'lucide-react';
 
-// Use the environment variable if available (Vercel), otherwise fallback to local development
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/translate";
+// Get the API URL from the environment. Will throw an error if missing.
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function App() {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -26,6 +26,11 @@ export default function App() {
 
   const handleTranslate = async () => {
     if (!selectedImage) return;
+
+    if (!API_URL) {
+      setError("There is a problem running the translation at this moment, please try again later");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
